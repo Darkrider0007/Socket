@@ -1,33 +1,37 @@
 import express from "express";
-import http from "http";
 import { Server } from "socket.io";
 
-// Configuration
+// Create Express App
+const app = express();
 const PORT = 3000;
 
-// Create Express app and HTTP server
-const app = express();
-const server = http.createServer(app);
+// Start Server with Express
+const server = app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
+});
+
+// Attach Socket.IO to the server
 const io = new Server(server);
 
-// Handle client connections
+// Handle Client Connections
 io.on("connection", (socket) => {
-  console.log("A client connected");
+  const clientId = socket.id; // Assign unique Client ID (Socket ID)
+  console.log(`Client Connected: ${clientId}`);
 
-  // Handle messages from the client
+  // Handle Incoming Messages
   socket.on("message", (data) => {
-    console.log(`Received from client: ${data}`);
-    const uppercaseMessage = data.toUpperCase(); // Convert to uppercase
-    socket.emit("response", uppercaseMessage); // Send response
+    console.log(`Received from Client (${clientId}): ${data}`);
+    const uppercaseMessage = data.toUpperCase(); // Process message
+    socket.emit("response", `Client ${clientId}: ${uppercaseMessage}`); // Respond with ID
   });
 
-  // Handle disconnection
+  // Handle Client Disconnect
   socket.on("disconnect", () => {
-    console.log("A client disconnected");
+    console.log(`Client Disconnected: ${clientId}`);
   });
 });
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+// Example Route
+app.get("/", (req, res) => {
+  res.send("Socket.IO Server is Running!");
 });
